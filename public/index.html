@@ -1,0 +1,246 @@
+<!-- public/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Mental Health Bot</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-100 to-purple-200 min-h-screen flex items-center justify-center p-4">
+
+  <div class="bg-white shadow-2xl rounded-2xl p-6 max-w-md w-full flex flex-col h-[90vh]">
+
+    <!-- Heading -->
+    <h1 class="text-3xl font-bold text-purple-700 text-center mb-2">Mental Health Bot</h1>
+    <p class="text-center text-gray-600 mb-4">How are you feeling today?</p>
+
+    <!-- Mood Selector -->
+    <div class="mb-4">
+      <label for="moodSelect" class="block text-gray-600 font-medium mb-1">Log your mood:</label>
+      <div class="flex gap-2">
+        <select id="moodSelect" class="flex-1 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">
+          <option value="">-- Select Mood --</option>
+          <option value="Happy">Happy</option>
+          <option value="Sad">Sad</option>
+          <option value="Anxious">Anxious</option>
+          <option value="Stressed">Stressed</option>
+          <option value="Content">Content</option>
+        </select>
+        <button id="logMoodBtn" class="bg-green-500 text-white px-3 py-2 rounded hover:bg-green-600 transition">Log</button>
+      </div>
+    </div>
+
+    <!-- Chat Window -->
+    <div id="chatWindow" class="flex-1 overflow-y-auto border border-gray-200 rounded-lg p-4 mb-4 space-y-3 bg-gray-50">
+      <!-- Messages will appear here -->
+    </div>
+
+    <!-- Input Form -->
+    <form id="chatForm" class="flex gap-2">
+      <input
+        type="text"
+        id="userMessage"
+        placeholder="Type your message..."
+        class="flex-1 px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500"
+        required
+      >
+      <button
+        type="submit"
+        class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition"
+      >Send</button>
+    </form>
+
+    <!-- Mood History Link -->
+    <a href="/mood-history.html" class="text-sm text-purple-600 text-center block mt-4 hover:underline">View Mood History</a>
+
+  </div>
+
+</body>
+</html>
+
+  <!-- <script>
+
+  const chatWindow = document.getElementById('chatWindow');
+  const userId = 'user123'; // static for now, can be dynamic later
+
+  function appendMessage(sender, text, timestamp) {
+  const msgDiv = document.createElement('div');
+  msgDiv.className = sender === 'user'
+    ? 'text-right'
+    : 'text-left';
+
+  const formattedTime = new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+  msgDiv.innerHTML = `
+    <div class="inline-block rounded-lg px-4 py-2 ${
+      sender === 'user' ? 'bg-purple-500 text-white' : 'bg-white border'
+    } max-w-xs break-words">
+      <p>${text}</p>
+      <span class="text-xs text-gray-500 block mt-1">${formattedTime}</span>
+    </div>
+  `;
+  chatWindow.appendChild(msgDiv);
+  chatWindow.scrollTop = chatWindow.scrollHeight;
+}
+
+  // Fetch chat history on load
+  async function fetchChatHistory() {
+    try {
+      const res = await fetch(`/api/chatbot/chat-history/${userId}`);
+      const data = await res.json();
+
+      // Clear existing messages
+      chatWindow.innerHTML = '';
+
+      // Append each message
+      data.forEach(msg => {
+        appendMessage(msg.role.toLowerCase(), msg.message, msg.createdAt);
+      });
+
+    } catch (err) {
+      console.error('Error loading chat history:', err);
+    }
+  }
+
+  document.getElementById('chatForm').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    const message = document.getElementById('userMessage').value;
+
+    // Show user's message immediately
+    appendMessage('user', message);
+
+    // Send to backend and store
+    const res = await fetch('/api/chatbot/message', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message })
+    });
+    const data = await res.json();
+
+    // Show bot's response
+    appendMessage('bot', data.response);
+
+    // Clear input
+    document.getElementById('userMessage').value = '';
+
+    // Optionally refetch full chat history (not necessary since we're appending real-time)
+    // await fetchChatHistory();
+  });
+
+  // Load history on page load
+  fetchChatHistory();
+  </script> -->
+
+<script>
+const chatWindow = document.getElementById('chatWindow');
+const userId = 'user123'; // static for now, can be dynamic later
+
+function appendMessage(sender, text, timestamp = new Date(), isCrisis = false) {
+  const msgDiv = document.createElement('div');
+  msgDiv.className = sender === 'user'
+    ? 'text-right'
+    : 'text-left';
+
+  const formattedTime = new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+   let bubbleClasses = 'inline-block rounded-lg px-4 py-2 max-w-xs break-words ';
+  if (isCrisis) {
+    bubbleClasses += 'bg-red-500 text-white border-2 border-red-700';  // crisis styling
+  } else {
+    bubbleClasses += sender === 'user' ? 'bg-purple-500 text-white' : 'bg-white border';
+  }
+
+  // msgDiv.innerHTML = `
+  //   <div class="inline-block rounded-lg px-4 py-2 ${
+  //     sender === 'user' ? 'bg-purple-500 text-white' : 'bg-white border'
+  //   } max-w-xs break-words">
+  //     <p>${text}</p>
+  //     <span class="text-xs text-gray-500 block mt-1">${formattedTime}</span>
+  //   </div>
+  // `;
+
+  msgDiv.innerHTML = `
+    <div class="${bubbleClasses}">
+      <p>${text}</p>
+      <span class="text-xs text-gray-200 block mt-1">${formattedTime}</span>
+      ${isCrisis ? '<span class="text-xs font-semibold">⚠️ Crisis Message</span>' : ''}
+    </div>
+  `;
+
+  chatWindow.appendChild(msgDiv);
+  chatWindow.scrollTop = chatWindow.scrollHeight;
+}
+
+
+document.getElementById('logMoodBtn').addEventListener('click', async () => {
+  const moodValue = document.getElementById('moodSelect').value;
+  if (!moodValue) {
+    alert('Please select a mood first.');
+    return;
+  }
+
+  const res = await fetch('/api/chatbot/mood', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      userId,
+      mood: moodValue
+    })
+  });
+
+  const data = await res.json();
+
+  if (data._id) {
+    alert(`Mood "${data.mood}" logged successfully!`);
+    document.getElementById('moodSelect').value = ''; // reset select
+  } else {
+    alert('Failed to log mood.');
+  }
+});
+
+
+
+// Fetch chat history on load
+async function fetchChatHistory() {
+  try {
+    const res = await fetch(`/api/chatbot/chat-history/${userId}`);
+    const data = await res.json();
+
+    chatWindow.innerHTML = '';
+
+    data.forEach(msg => {
+  appendMessage(msg.role.toLowerCase(), msg.message, msg.createdAt, msg.isCrisis);
+    });
+
+  } catch (err) {
+    console.error('Error loading chat history:', err);
+  }
+}
+
+document.getElementById('chatForm').addEventListener('submit', async function (e) {
+  e.preventDefault();
+  const messageInput = document.getElementById('userMessage');
+  const message = messageInput.value;
+
+  appendMessage('user', message); // show user message immediately
+
+  const res = await fetch('/api/chatbot/message', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message })
+  });
+  const data = await res.json();
+
+  // Show bot's response with timestamp from DB, fallback to now if not provided
+ // appendMessage('bot', data.response, data.createdAt || new Date());
+  appendMessage('bot', data.response, data.createdAt || new Date(), data.isCrisis);
+
+
+  messageInput.value = '';
+});
+
+// Load chat history on page load
+fetchChatHistory();
+</script>
+
+</body>
+</html>
